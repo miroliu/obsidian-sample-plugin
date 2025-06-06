@@ -32,6 +32,9 @@ export default class MyPlugin extends Plugin {
 			})
 		});
 
+		if (!response.ok) {
+			throw new Error(`HTTP error! status: ${response.status} ${response.statusText}`);
+		}
 		const audioBlob = await response.blob();
 		const audioUrl = URL.createObjectURL(audioBlob);
 		new Audio(audioUrl).play();
@@ -132,11 +135,6 @@ export default class MyPlugin extends Plugin {
 
 		// 添加设置选项卡，用户可配置插件的各项参数
 		this.addSettingTab(new SampleSettingTab(this.app, this));
-
-		// 注册全局DOM点击事件（插件禁用时自动移除监听器）
-		this.registerDomEvent(document, 'click', (evt: MouseEvent) => {
-			console.log('点击事件', evt);
-		});
 
 		// 注册定时任务（插件禁用时自动清除）
 		this.registerInterval(window.setInterval(() => console.log('定时任务执行'), 5 * 60 * 1000));
