@@ -6,12 +6,14 @@ interface MyPluginSettings {
 	apiUrl: string;
 	model: string;
 	apiKey: string;
+	voice: string;
 }
 
 const DEFAULT_SETTINGS: MyPluginSettings = {
 	apiUrl: 'https://api.siliconflow.cn/v1/audio/speech',
 	model: 'FunAudioLLM/CosyVoice2-0.5B',
-	apiKey: 'Bearer <your-api-key>'
+	apiKey: 'Bearer <your-api-key>',
+	voice: 'diana'
 }
 
 export default class MyPlugin extends Plugin {
@@ -33,7 +35,7 @@ export default class MyPlugin extends Plugin {
 				stream: true,
 				speed: 1,
 				gain: 0,
-				voice: `${this.settings.model}:diana`
+				voice: `${this.settings.model}:${this.settings.voice}`
 			})
 		});
 
@@ -216,6 +218,24 @@ class SampleSettingTab extends PluginSettingTab {
 						return;
 					}
 					this.plugin.settings.model = value;
+					await this.plugin.saveSettings();
+				}));
+
+		new Setting(containerEl)
+			.setName('音色选择')
+			.addDropdown(dropdown => dropdown
+				.addOptions({
+					'diana': 'Diana',
+					'alex': 'Alex',
+					'anna': 'Anna',
+					'bella': 'Bella',
+					'benjamincharles': 'Benjamin',
+					'claire': 'Claire',
+					'david': 'David'
+				})
+				.setValue(this.plugin.settings.voice)
+				.onChange(async (value) => {
+					this.plugin.settings.voice = value;
 					await this.plugin.saveSettings();
 				}));
 
