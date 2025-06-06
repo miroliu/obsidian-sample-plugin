@@ -1,11 +1,11 @@
 {
-	"id": "sample-plugin",
-	"name": "Sample Plugin",
+	"id": "cosy-voice",
+	"name": "CosyVoicen",
 	"version": "1.0.0",
 	"minAppVersion": "0.15.0",
-	"description": "Demonstrates some of the capabilities of the Obsidian API.",
-	"author": "Obsidian",
-	"authorUrl": "https://obsidian.md",
+	"description": "‌CosyVoice是阿里巴巴开源的多语言文本到语音(TTS)系统‌，具备零样本音色克隆、多语言语音合成和实时流式处理能力，支持中文、日语、英语等五种语言。",
+	"author": "miroliu",
+	"authorUrl": "https://lms.mba/",
 	"fundingUrl": "https://obsidian.md/pricing",
 	"isDesktopOnly": false
 }
