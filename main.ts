@@ -105,40 +105,7 @@ export default class MyPlugin extends Plugin {
 			}
 		});
 
-		// 添加一个可在任意位置触发的简单命令
-		this.addCommand({
-			id: 'open-sample-modal-simple',
-			name: '打开示例模态框（简单）',
-			callback: () => {
-				new SampleModal(this.app).open();
-			}
-		});
-		// 添加一个编辑器命令，可对当前编辑器实例执行操作
-		this.addCommand({
-			id: 'sample-editor-command',
-			name: '示例编辑器命令',
-			editorCallback: (editor: Editor, view: MarkdownView) => {
-				console.log(editor.getSelection());
-				editor.replaceSelection('示例编辑器命令');
-			}
-		});
-		// 添加一个复杂命令，可检查应用当前状态是否允许执行该命令
-		this.addCommand({
-			id: 'open-sample-modal-complex',
-			name: '打开示例模态框（复杂）',
-			checkCallback: (checking: boolean) => {
-				// 检查当前是否为Markdown视图
-				const markdownView = this.app.workspace.getActiveViewOfType(MarkdownView);
-				if (markdownView) {
-					// 非检查模式时实际执行操作
-					if (!checking) {
-						new SampleModal(this.app).open();
-					}
-					// 返回true表示命令可用
-					return true;
-				}
-			}
-		});
+
 
 		// 添加设置选项卡，用户可配置插件的各项参数
 		this.addSettingTab(new SampleSettingTab(this.app, this));
@@ -242,7 +209,7 @@ class SampleSettingTab extends PluginSettingTab {
 		new Setting(containerEl)
 			.setName('API密钥')
 			.addText(text => text
-				.setPlaceholder('Bearer <your-api-key>')
+				.setPlaceholder('apikey>')
 				.setValue(this.plugin.settings.apiKey)
 				.onChange(async (value) => {
 					if (!value.trim()) {
