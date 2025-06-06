@@ -27,7 +27,7 @@ export default class MyPlugin extends Plugin {
 			},
 			body: JSON.stringify({
 				model: this.settings.model,
-				input: `${text}<|endofprompt|>`,
+				input: `${text}`,
 				response_format: 'mp3',
 				sample_rate: 32000,
 				stream: true,
