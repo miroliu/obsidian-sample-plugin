@@ -39,19 +39,45 @@ export default class MyPlugin extends Plugin {
 	async onload() {
 		await this.loadSettings();
 
-		// 创建左侧功能区图标
-		const ribbonIconEl = this.addRibbonIcon('dice', '示例插件', (evt: MouseEvent) => {
-			// 用户点击图标时触发
-			new Notice('这是一条提示！');
+		// 创建左侧功能区图标（语音合成）
+		const ttsRibbonIconEl = this.addRibbonIcon('microphone', '文本转语音', (evt: MouseEvent) => {
+			const markdownView = this.app.workspace.getActiveViewOfType(MarkdownView);
+			if (markdownView) {
+				const editor = markdownView.editor;
+				const selectedText = editor.getSelection();
+				if (selectedText) {
+					this.fetchAndPlayAudio(selectedText);
+				} else {
+					new Notice('请先选择要转换的文本');
+				}
+			} else {
+				new Notice('当前未打开Markdown文档');
+			}
 		});
 		// 为图标添加自定义类
-		ribbonIconEl.addClass('my-plugin-ribbon-class');
+		ttsRibbonIconEl.addClass('tts-plugin-ribbon-class');
+		// 为图标添加自定义类
+		ttsRibbonIconEl.addClass('my-plugin-ribbon-class');
 
 		// 添加底部状态栏项（移动端不可用）
 		const statusBarItemEl = this.addStatusBarItem();
 		statusBarItemEl.setText('状态栏文本');
 
-		// 添加文本转语音命令
+		// 添加文本转语音命令（编辑器专用）
+		this.addCommand({
+			id: 'editor-text-to-speech',
+			name: '编辑器文本转语音',
+			editorCallback: (editor) => {
+				const selectedText = editor.getSelection();
+				if (selectedText) {
+					this.fetchAndPlayAudio(selectedText);
+				} else {
+					new Notice('请先选择要转换的文本');
+				}
+			}
+		});
+
+		// 添加全局文本转语音命令（命令面板可用）
 		this.addCommand({
 			id: 'text-to-speech',
 			name: '文本转语音',
