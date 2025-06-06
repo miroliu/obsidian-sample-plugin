@@ -27,8 +27,13 @@ export default class MyPlugin extends Plugin {
 			},
 			body: JSON.stringify({
 				model: this.settings.model,
-				input: text,
-				response_format: 'mp3'
+				input: `${text}<|endofprompt|>`,
+				response_format: 'mp3',
+				sample_rate: 32000,
+				stream: true,
+				speed: 1,
+				gain: 0,
+				voice: `${this.settings.model}:diana`
 			})
 		});
 
