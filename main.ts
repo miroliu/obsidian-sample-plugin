@@ -18,6 +18,7 @@ const DEFAULT_SETTINGS: MyPluginSettings = {
 
 export default class MyPlugin extends Plugin {
 	settings: MyPluginSettings;
+	currentAudio: HTMLAudioElement | null = null;
 
 	async fetchAndPlayAudio(text: string) {
 		try {
@@ -44,13 +45,16 @@ export default class MyPlugin extends Plugin {
 		}
 		const audioBlob = await response.blob();
 		const audioUrl = URL.createObjectURL(audioBlob);
-		new Audio(audioUrl).play();
+		new Notice('AI朗读中...', 5000);
+		this.currentAudio = new Audio(audioUrl);
+		this.currentAudio.play();
 	} catch (error) {
 		new Notice(`语音生成失败: ${error instanceof Error ? error.message : '网络错误'}`);
 	}
 	}
 
 	async onload() {
+		const plugin = this;
 		await this.loadSettings();
 
 		// 创建左侧功能区图标（语音合成）
@@ -101,6 +105,18 @@ export default class MyPlugin extends Plugin {
 					this.fetchAndPlayAudio(selectedText);
 				} else {
 					new Notice('请先选择要转换的文本');
+				}
+			}
+		});
+
+		this.addCommand({
+			id: 'stop-audio-playback',
+			name: '停止语音播放',
+			callback: () => {
+				if (plugin.currentAudio) {
+					plugin.currentAudio.pause();
+					plugin.currentAudio = null;
+					new Notice('已停止播放');
 				}
 			}
 		});
