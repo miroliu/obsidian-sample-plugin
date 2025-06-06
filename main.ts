@@ -18,6 +18,7 @@ export default class MyPlugin extends Plugin {
 	settings: MyPluginSettings;
 
 	async fetchAndPlayAudio(text: string) {
+		try {
 		const response = await fetch(this.settings.apiUrl, {
 			method: 'POST',
 			headers: {
@@ -34,6 +35,9 @@ export default class MyPlugin extends Plugin {
 		const audioBlob = await response.blob();
 		const audioUrl = URL.createObjectURL(audioBlob);
 		new Audio(audioUrl).play();
+	} catch (error) {
+		new Notice(`语音生成失败: ${error instanceof Error ? error.message : '网络错误'}`);
+	}
 	}
 
 	async onload() {
@@ -190,6 +194,10 @@ class SampleSettingTab extends PluginSettingTab {
 				.setPlaceholder('https://api.siliconflow.cn/v1/audio/speech')
 				.setValue(this.plugin.settings.apiUrl)
 				.onChange(async (value) => {
+					if (!value.trim()) {
+						new Notice('API地址不能为空');
+						return;
+					}
 					this.plugin.settings.apiUrl = value;
 					await this.plugin.saveSettings();
 				}));
@@ -200,6 +208,10 @@ class SampleSettingTab extends PluginSettingTab {
 				.setPlaceholder('FunAudioLLM/CosyVoice2-0.5B')
 				.setValue(this.plugin.settings.model)
 				.onChange(async (value) => {
+					if (!value.trim()) {
+						new Notice('模型名称不能为空');
+						return;
+					}
 					this.plugin.settings.model = value;
 					await this.plugin.saveSettings();
 				}));
@@ -210,6 +222,10 @@ class SampleSettingTab extends PluginSettingTab {
 				.setPlaceholder('Bearer <your-api-key>')
 				.setValue(this.plugin.settings.apiKey)
 				.onChange(async (value) => {
+					if (!value.trim() || !value.startsWith('Bearer ')) {
+						new Notice('API密钥格式错误，需以Bearer 开头');
+						return;
+					}
 					this.plugin.settings.apiKey = value;
 					await this.plugin.saveSettings();
 				}));
