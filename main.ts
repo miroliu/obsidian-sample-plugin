@@ -22,7 +22,7 @@ export default class MyPlugin extends Plugin {
 		const response = await fetch(this.settings.apiUrl, {
 			method: 'POST',
 			headers: {
-				Authorization: this.settings.apiKey,
+				Authorization: `Bearer ${this.settings.apiKey}`,
 				'Content-Type': 'application/json'
 			},
 			body: JSON.stringify({
@@ -225,8 +225,8 @@ class SampleSettingTab extends PluginSettingTab {
 				.setPlaceholder('Bearer <your-api-key>')
 				.setValue(this.plugin.settings.apiKey)
 				.onChange(async (value) => {
-					if (!value.trim() || !value.startsWith('Bearer ')) {
-						new Notice('API密钥格式错误，需以Bearer 开头');
+					if (!value.trim()) {
+						new Notice('API密钥不能为空');
 						return;
 					}
 					this.plugin.settings.apiKey = value;
