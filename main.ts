@@ -3,15 +3,38 @@ import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Set
 // 记得重命名这些类和接口！
 
 interface MyPluginSettings {
-	mySetting: string;
+	apiUrl: string;
+	model: string;
+	apiKey: string;
 }
 
 const DEFAULT_SETTINGS: MyPluginSettings = {
-	mySetting: 'default'
+	apiUrl: 'https://api.siliconflow.cn/v1/audio/speech',
+	model: 'FunAudioLLM/CosyVoice2-0.5B',
+	apiKey: 'Bearer <your-api-key>'
 }
 
 export default class MyPlugin extends Plugin {
 	settings: MyPluginSettings;
+
+	async fetchAndPlayAudio(text: string) {
+		const response = await fetch(this.settings.apiUrl, {
+			method: 'POST',
+			headers: {
+				Authorization: this.settings.apiKey,
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({
+				model: this.settings.model,
+				input: text,
+				response_format: 'mp3'
+			})
+		});
+
+		const audioBlob = await response.blob();
+		const audioUrl = URL.createObjectURL(audioBlob);
+		new Audio(audioUrl).play();
+	}
 
 	async onload() {
 		await this.loadSettings();
@@ -27,6 +50,20 @@ export default class MyPlugin extends Plugin {
 		// 添加底部状态栏项（移动端不可用）
 		const statusBarItemEl = this.addStatusBarItem();
 		statusBarItemEl.setText('状态栏文本');
+
+		// 添加文本转语音命令
+		this.addCommand({
+			id: 'text-to-speech',
+			name: '文本转语音',
+			editorCallback: (editor) => {
+				const selectedText = editor.getSelection();
+				if (selectedText) {
+					this.fetchAndPlayAudio(selectedText);
+				} else {
+					new Notice('请先选择要转换的文本');
+				}
+			}
+		});
 
 		// 添加一个可在任意位置触发的简单命令
 		this.addCommand({
@@ -122,13 +159,32 @@ class SampleSettingTab extends PluginSettingTab {
 
 		// 添加文本输入设置项
 		new Setting(containerEl)
-			.setName('设置1')
-			.setDesc('这是一个秘密')
+			.setName('API 配置')
 			.addText(text => text
-				.setPlaceholder('输入你的秘密')
-				.setValue(this.plugin.settings.mySetting)
+				.setPlaceholder('https://api.siliconflow.cn/v1/audio/speech')
+				.setValue(this.plugin.settings.apiUrl)
 				.onChange(async (value) => {
-					this.plugin.settings.mySetting = value;
+					this.plugin.settings.apiUrl = value;
+					await this.plugin.saveSettings();
+				}));
+
+		new Setting(containerEl)
+			.setName('模型名称')
+			.addText(text => text
+				.setPlaceholder('FunAudioLLM/CosyVoice2-0.5B')
+				.setValue(this.plugin.settings.model)
+				.onChange(async (value) => {
+					this.plugin.settings.model = value;
+					await this.plugin.saveSettings();
+				}));
+
+		new Setting(containerEl)
+			.setName('API密钥')
+			.addText(text => text
+				.setPlaceholder('Bearer <your-api-key>')
+				.setValue(this.plugin.settings.apiKey)
+				.onChange(async (value) => {
+					this.plugin.settings.apiKey = value;
 					await this.plugin.saveSettings();
 				}));
 	}
