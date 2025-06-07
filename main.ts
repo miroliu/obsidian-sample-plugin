@@ -212,7 +212,8 @@ class SampleSettingTab extends PluginSettingTab {
 					'alex': 'Alex',
 					'anna': 'Anna',
 					'bella': 'Bella',
-					'benjamincharles': 'Benjamin',
+					'benjamin': 'Benjamin',
+					'charles': 'Charles',
 					'claire': 'Claire',
 					'david': 'David'
 				})
