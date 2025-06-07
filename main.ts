@@ -222,7 +222,13 @@ class SampleSettingTab extends PluginSettingTab {
 			const data = await response.json();
 			const imageUrl = data.images[0].url;
 			const timestamp = new Date().getTime();
-			await this.downloadImage(imageUrl, `generated-${timestamp}.png`);
+			const filename = `generated-${timestamp}.png`;
+			await this.downloadImage(imageUrl, filename);
+			const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
+			if (activeView) {
+				const editor = activeView.editor;
+				editor.replaceSelection(`\n\n![[attachments/${filename}]]`);
+			}
 		} catch (error) {
 			new Notice(`图片生成失败: ${error instanceof Error ? error.message : '网络错误'}`);
 		}
