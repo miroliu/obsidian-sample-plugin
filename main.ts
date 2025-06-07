@@ -7,13 +7,17 @@ interface MyPluginSettings {
 	model: string;
 	apiKey: string;
 	voice: string;
+	imageModel: string;
+	imageSize: string;
 }
 
 const DEFAULT_SETTINGS: MyPluginSettings = {
 	apiUrl: 'https://api.siliconflow.cn/v1/audio/speech',
 	model: 'FunAudioLLM/CosyVoice2-0.5B',
 	apiKey: 'Bearer <your-api-key>',
-	voice: 'diana'
+	voice: 'diana',
+	imageModel: 'Kwai-Kolors/Kolors',
+	imageSize: '720x1440'
 }
 
 export default class MyPlugin extends Plugin {
@@ -121,6 +125,20 @@ export default class MyPlugin extends Plugin {
 			}
 		});
 
+		this.addCommand({
+			id: 'generate-image',
+			name: '生成图片',
+			editorCallback: (editor) => {
+				const selectedText = editor.getSelection();
+				if (selectedText) {
+					const settingTab = new SampleSettingTab(this.app, this);
+					settingTab.generateAndDownloadImage(selectedText);
+				} else {
+					new Notice('请先选择要作为提示词的文本');
+				}
+			}
+		});
+
 
 
 		// 添加设置选项卡，用户可配置插件的各项参数
@@ -162,6 +180,49 @@ class SampleModal extends Modal {
 }
 
 class SampleSettingTab extends PluginSettingTab {
+	async downloadImage(url: string, filename: string) {
+		try {
+			const response = await fetch(url);
+			if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+			const blob = await response.blob();
+			const arrayBuffer = await blob.arrayBuffer();
+			await this.plugin.app.vault.adapter.writeBinary(`attachments/${filename}`, arrayBuffer);
+			new Notice('图片已保存到附件目录');
+		} catch (error) {
+			new Notice(`图片下载失败: ${error instanceof Error ? error.message : '网络错误'}`);
+		}
+	}
+
+	async generateAndDownloadImage(prompt: string) {
+		try {
+			const response = await fetch('https://api.siliconflow.cn/v1/images/generations', {
+				method: 'POST',
+				headers: {
+					'Authorization': `Bearer ${this.plugin.settings.apiKey}`,
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({
+					model: this.plugin.settings.imageModel,
+					prompt: prompt,
+					image_size: this.plugin.settings.imageSize,
+					batch_size: 1,
+					num_inference_steps: 20,
+					guidance_scale: 7.5
+				})
+			});
+
+			if (!response.ok) {
+				throw new Error(`HTTP error! status: ${response.status}`);
+			}
+
+			const data = await response.json();
+			const imageUrl = data.images[0].url;
+			const timestamp = new Date().getTime();
+			await this.downloadImage(imageUrl, `generated-${timestamp}.png`);
+		} catch (error) {
+			new Notice(`图片生成失败: ${error instanceof Error ? error.message : '网络错误'}`);
+		}
+	}
 	plugin: MyPlugin;
 
 	constructor(app: App, plugin: MyPlugin) {
@@ -236,6 +297,34 @@ class SampleSettingTab extends PluginSettingTab {
 						return;
 					}
 					this.plugin.settings.apiKey = value;
+					await this.plugin.saveSettings();
+				}));
+
+		new Setting(containerEl)
+			.setName('图片模型')
+			.addText(text => text
+				.setPlaceholder('Kwai-Kolors/Kolors')
+				.setValue(this.plugin.settings.imageModel)
+				.onChange(async (value) => {
+					if (!value.trim()) {
+						new Notice('图片模型不能为空');
+						return;
+					}
+					this.plugin.settings.imageModel = value;
+					await this.plugin.saveSettings();
+				}));
+
+		new Setting(containerEl)
+			.setName('图片尺寸')
+			.addText(text => text
+				.setPlaceholder('720x1440')
+				.setValue(this.plugin.settings.imageSize)
+				.onChange(async (value) => {
+					if (!value.trim()) {
+						new Notice('图片尺寸不能为空');
+						return;
+					}
+					this.plugin.settings.imageSize = value;
 					await this.plugin.saveSettings();
 				}));
 	}
