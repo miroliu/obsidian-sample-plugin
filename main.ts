@@ -186,7 +186,11 @@ class SampleSettingTab extends PluginSettingTab {
 			if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 			const blob = await response.blob();
 			const arrayBuffer = await blob.arrayBuffer();
-			await this.plugin.app.vault.adapter.writeBinary(`attachments/${filename}`, arrayBuffer);
+			const attachmentsDir = 'attachments';
+			if (!await this.plugin.app.vault.adapter.exists(attachmentsDir)) {
+				await this.plugin.app.vault.adapter.mkdir(attachmentsDir);
+			}
+			await this.plugin.app.vault.adapter.writeBinary(`${attachmentsDir}/${filename}`, arrayBuffer);
 			new Notice('图片已保存到附件目录');
 		} catch (error) {
 			new Notice(`图片下载失败: ${error instanceof Error ? error.message : '网络错误'}`);
