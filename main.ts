@@ -214,8 +214,10 @@ class SampleSettingTab extends PluginSettingTab {
 					'bella': 'Bella',
 					'benjamin': 'Benjamin',
 					'charles': 'Charles',
+			
 					'claire': 'Claire',
 					'david': 'David'
+
 				})
 				.setValue(this.plugin.settings.voice)
 				.onChange(async (value) => {
