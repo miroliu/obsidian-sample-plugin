@@ -186,11 +186,15 @@ class SampleSettingTab extends PluginSettingTab {
 			if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 			const blob = await response.blob();
 			const arrayBuffer = await blob.arrayBuffer();
-			const attachmentsDir = 'attachments';
-			if (!await this.plugin.app.vault.adapter.exists(attachmentsDir)) {
-				await this.plugin.app.vault.adapter.mkdir(attachmentsDir);
+			const activeFile = this.app.workspace.getActiveFile();
+			if (activeFile) {
+				const parentPath = activeFile.parent?.path || '';
+				const attachmentsDir = `${parentPath}/attachGen`;
+				if (!await this.plugin.app.vault.adapter.exists(attachmentsDir)) {
+					await this.plugin.app.vault.adapter.mkdir(attachmentsDir);
+				}
+				await this.plugin.app.vault.adapter.writeBinary(`${attachmentsDir}/${filename}`, arrayBuffer);
 			}
-			await this.plugin.app.vault.adapter.writeBinary(`${attachmentsDir}/${filename}`, arrayBuffer);
 			new Notice('图片已保存到附件目录');
 		} catch (error) {
 			new Notice(`图片下载失败: ${error instanceof Error ? error.message : '网络错误'}`);
@@ -225,9 +229,11 @@ class SampleSettingTab extends PluginSettingTab {
 			const filename = `generated-${timestamp}.png`;
 			await this.downloadImage(imageUrl, filename);
 			const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
-			if (activeView) {
+			const activeFile = this.app.workspace.getActiveFile();
+			if (activeView && activeFile) {
 				const editor = activeView.editor;
-				editor.replaceSelection(`\n\n![[attachments/${filename}]]`);
+				const parentPath = activeFile.parent?.path || '';
+				editor.replaceSelection(`\n\n![[${parentPath}/attachGen/${filename}]]`);
 			}
 		} catch (error) {
 			new Notice(`图片生成失败: ${error instanceof Error ? error.message : '网络错误'}`);
